@@ -23,6 +23,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Prisma Generate
+        run: npx prisma generate
+
       - name: Linting
         run: npm run lint
 
@@ -31,9 +34,10 @@ jobs:
 
       - name: Run Tests
         run: npm run test
-
-      - name: Prisma Generate
-        run: npx prisma generate
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+          NEXTAUTH_SECRET: "dummy-secret-for-tests"
+          NEXTAUTH_URL: "http://localhost:3000"
 
       - name: Build
         run: npm run build
