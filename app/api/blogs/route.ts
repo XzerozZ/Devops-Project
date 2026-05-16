@@ -3,9 +3,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { BlogService } from '@/services/blog.service'
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const search = searchParams.get('search')
+
   try {
     const blogService = new BlogService()
+    
+    if (search) {
+      const blogs = await blogService.searchBlogs(search)
+      return NextResponse.json(blogs)
+    }
+
     const blogs = await blogService.getAllBlogs()
     return NextResponse.json(blogs)
   } catch (error: any) {

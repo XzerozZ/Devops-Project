@@ -8,12 +8,15 @@ export default function BlogListPage() {
   const [blogs, setBlogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
   const { data: session } = useSession()
 
   useEffect(() => {
     const fetchBlogs = async () => {
+      setLoading(true)
       try {
-        const res = await fetch('/api/blogs')
+        const url = search ? `/api/blogs?search=${encodeURIComponent(search)}` : '/api/blogs'
+        const res = await fetch(url)
         const data = await res.json()
         
         if (Array.isArray(data)) {
@@ -29,10 +32,12 @@ export default function BlogListPage() {
       }
     }
 
-    fetchBlogs()
-  }, [])
+    const timer = setTimeout(() => {
+      fetchBlogs()
+    }, 300)
 
-  if (loading) return <div className="text-center mt-10">Loading blogs...</div>
+    return () => clearTimeout(timer)
+  }, [search])
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -61,18 +66,29 @@ export default function BlogListPage() {
         </div>
       </div>
 
+      <div className="mb-8">
+        <input
+          type="text"
+          placeholder="Search blogs by title..."
+          className="w-full border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <div className="space-y-6">
-        {error && (
+        {loading && <p className="text-center text-gray-500 py-10">Searching...</p>}
+        {!loading && error && (
           <p className="text-center text-red-600 border border-red-200 bg-red-50 p-4 rounded-md">
             {error}
           </p>
         )}
 
-        {!error && blogs.length === 0 && (
+        {!loading && !error && blogs.length === 0 && (
           <p className="text-center text-gray-500">No blogs found.</p>
         )}
 
-        {!error && blogs.length > 0 && blogs.map((blog: any) => (
+        {!loading && !error && blogs.length > 0 && blogs.map((blog: any) => (
           <div key={blog.id} className="border p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <h2 className="text-2xl font-semibold mb-2">{blog.title}</h2>
             <p className="text-gray-600 mb-4">{blog.content.substring(0, 150)}...</p>

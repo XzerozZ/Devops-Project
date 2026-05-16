@@ -29,6 +29,9 @@ jobs:
       - name: Type Checking
         run: npm run type-check
 
+      - name: Run Tests
+        run: npm run test
+
       - name: Prisma Generate
         run: npx prisma generate
 

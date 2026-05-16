@@ -67,4 +67,27 @@ export class BlogRepository {
       where: { id },
     })
   }
+
+  async searchByTitle(query: string): Promise<Blog[]> {
+    return prisma.blog.findMany({
+      where: {
+        title: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+  }
 }

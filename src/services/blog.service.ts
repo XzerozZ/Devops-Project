@@ -16,6 +16,10 @@ export class BlogService {
     return this.blogRepository.findById(id)
   }
 
+  async searchBlogs(query: string) {
+    return this.blogRepository.searchByTitle(query)
+  }
+
   async createBlog(data: { title: string; content: string; authorId: string }) {
     const slug = this.generateSlug(data.title)
     
