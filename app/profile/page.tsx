@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -8,22 +8,23 @@ import Link from 'next/link'
 export default function ProfilePage() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
-  const [name, setName] = useState('')
+  
+  // Track manual changes. Initialize as null to signify "no changes yet"
+  const [manualName, setManualName] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
 
-  useEffect(() => {
-    if (session?.user?.name) {
-      setName(session.user.name)
-    }
-  }, [session])
-
+  // Early returns after all hooks
   if (status === 'loading') return <div className="text-center mt-10">Loading...</div>
+  
   if (status === 'unauthenticated') {
     router.push('/auth/login')
     return null
   }
+
+  // Derived state: Use manual name if set, otherwise use session name
+  const displayName = manualName !== null ? manualName : (session?.user?.name || '')
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,13 +37,15 @@ export default function ProfilePage() {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: displayName }),
       })
 
       if (res.ok) {
         setSuccess('Profile updated successfully')
         // Update local session
-        await update({ name })
+        await update({ name: displayName })
+        // Clear manual name once session is updated
+        setManualName(null)
         router.refresh()
       } else {
         const data = await res.json()
@@ -71,8 +74,8 @@ export default function ProfilePage() {
             <input
               type="text"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={displayName}
+              onChange={(e) => setManualName(e.target.value)}
             />
           </div>
           
